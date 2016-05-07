@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pong"
@@ -73,7 +73,7 @@ func main() {
 				}
 			}
 		case currentTime := <-ticker.C:
-			Render(game, os.Stdout)
+			Render(game)
 			frameDuration := currentTime.Sub(lastTime)
 			lastTime = currentTime
 			game.Tick(frameDuration)
@@ -81,11 +81,15 @@ func main() {
 	}
 }
 
-func Render(game *pong.Game, wr io.Writer) {
+func Render(game *pong.Game) {
 	ball := termbox.Cell{Ch: '*', Fg: termbox.ColorWhite, Bg: termbox.ColorBlack}
 	paddle := termbox.Cell{Ch: ']', Fg: termbox.ColorWhite, Bg: termbox.ColorBlack}
 
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+
+	renderText(0, 0, strconv.Itoa(game.Players[0].Score))
+	width, _ := termbox.Size()
+	renderText(width-4, 0, strconv.Itoa(game.Players[1].Score))
 
 	for _, b := range game.Balls {
 		x := int(b.Pos.X / 10)
@@ -107,6 +111,13 @@ func Render(game *pong.Game, wr io.Writer) {
 	}
 
 	termbox.Flush()
+}
+
+func renderText(x, y int, text string) {
+	for _, r := range text {
+		termbox.SetCell(x, y, r, termbox.ColorGreen, termbox.ColorBlack)
+		x++
+	}
 }
 
 type keyboardPaddleController struct {
